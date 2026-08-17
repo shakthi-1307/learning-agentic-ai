@@ -186,13 +186,27 @@ agent = Agent(
 # RUN AGENT
 # ==========================================
 
-question = input(
-    "What can I help you with? "
+answer = agent.chat(
+    "What is the weather in Chennai?"
 )
-
-
-answer = agent.run(question)
-
 
 print("\n🤖 Agent:")
 print(answer)
+
+
+answer = agent.chat(
+    "What about London?"
+)
+
+print("\n🤖 Agent:")
+print(answer)
+
+
+answer = agent.chat(
+    "And what about New York?"
+)
+
+print("\n🤖 Agent:")
+print(answer)
+
+agent.show_memory()
