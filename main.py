@@ -22,6 +22,28 @@ def get_weather(city):
 
     return weather_data.get(city, "Weather data not available.")
 
+def calculator(expression):
+    try:
+        result = eval(expression)
+        return str(result)
+    except Exception:
+        return "Invalid mathematical Expression"
+    
+def get_time(city):
+    time_data = {
+        "Chennai": "21:30",
+        "London": "17:00",
+        "New York": "12:00",
+    }
+
+    return time_data.get(city, "Time data not available")
+
+tool_registry = {
+    "get_weather": get_weather,
+    "calculator": calculator,
+    "get_time": get_time,
+}
+
 
 # -------------------------
 # Tool definition
@@ -43,9 +65,44 @@ tools = [
                 "required": ["city"]
             }
         }
+    },
+
+    {
+        "type": "function",
+        "function": {
+            "name": "calculator",
+            "description": "Calculate a mathematical expression.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "expression": {
+                        "type": "string",
+                        "description": "A mathematical expression such as 25 * 48"
+                    }
+                },
+                "required": ["expression"]
+            }
+        }
+    },
+
+    {
+        "type": "function",
+        "function": {
+            "name": "get_time",
+            "description": "Get the current time for a city.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "city": {
+                        "type": "string",
+                        "description": "The name of the city"
+                    }
+                },
+                "required": ["city"]
+            }
+        }
     }
 ]
-
 
 # -------------------------
 # User input
@@ -84,24 +141,29 @@ if message.tool_calls:
     for tool_call in message.tool_calls:
 
         tool_name = tool_call.function.name
-        arguments = json.loads(tool_call.function.arguments)
+        arguments = json.loads(
+            tool_call.function.arguments
+        )
 
-        print("Tool:", tool_name)
+        print("Tool requested:", tool_name)
         print("Arguments:", arguments)
 
-        if tool_name == "get_weather":
+        # Find the Python function
+        tool = tool_registry[tool_name]
 
-            result = get_weather(arguments["city"])
+        # Execute it
+        result = tool(**arguments)
 
-            print("Tool result:", result)
+        print("Tool result:", result)
 
-            messages.append(
-                {
-                    "role": "tool",
-                    "tool_call_id": tool_call.id,
-                    "content": result
-                }
-            )
+        # Give result back to LLM
+        messages.append(
+            {
+                "role": "tool",
+                "tool_call_id": tool_call.id,
+                "content": result,
+            }
+        )
 
 
     # -------------------------
